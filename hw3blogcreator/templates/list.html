@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>/the Blog/</title>
+    </head>
+
+    <style type="text/css">
+
+    body {
+        font-family: sans-serif;
+        width: 800px;
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+   hr {
+        margin: 20px auto;
+    }
+
+    .subject + .subject {
+        margin-top: 20px;
+    }
+
+    .sub-title {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .content {
+        margin: 0; font-size: 17px;
+    }
+    </style>
+
+
+    
+    <body>
+      <h1><center>the Blog</center></h1>
+        
+      {% for blog in blogs %}
+
+            <div class="subject">
+                <div class="sub-title">{{blog.subject}} 
+                 {{blog.created.strftime('%b %d, %Y')}}
+                 </div>
+                <hr>
+                <pre class="content">{{blog.content}}</pre>
+            </div>
+            
+        {%  endfor %}
+            
+
+
+    </body>
+    
+
+</html>
