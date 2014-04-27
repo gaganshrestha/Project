@@ -17,6 +17,7 @@
 
 import webapp2
 import jinja2
+import json
 import os
 import random
 import validateForm
@@ -90,7 +91,9 @@ def escape_html(str):
         dic = {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}
         for i, j in dic.iteritems():
             str = str.replace(i,j)
-        return str        
+        return str
+
+
 
 
 #Mail handler class with all functions
@@ -104,8 +107,19 @@ class Handler(webapp2.RequestHandler):
                 self.write(self.render_str(template, **kw))
         def logout(self):
                 self.response.headers.add_header('Set-Cookie','user=;Path=/')
-                
 
+        def render_json(self,d):
+                json.txt = json.dumps(d)
+                self.response.headers['content-type']='application/json; charset=UTF-8'
+                self.response.out.write(json.txt)
+
+
+#Instance for blog                
+class Blog(db.Model):
+    subject = db.StringProperty(required = True)
+    content = db.TextProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
+    
 
 #Creating instance
 class Registration(db.Model):
@@ -179,7 +193,46 @@ class MainHandler(Handler):
             else:
                     self.write_form(usr_name,nameerror,passwderror,matcherror,usr_email,emailerror)
             
-                                                         
+class NewPost(Handler):
+        def render_front(self,subject="",content="",error=""):
+                self.render("front.html",subject=subject,content=content,error=error)
+
+        def post(self):
+                subject = self.request.get("subject")
+                content = self.request.get("content")
+
+                if subject and content:
+                    a = Blog(subject = subject, content = content)
+                    key = a.put()
+                    self.redirect("/blog/%d" % key.id())
+                else:
+                    error = "we need both subject and blog please !"
+                    self.render_front(subject,content,error)
+    
+        def get(self):
+                self.render_front()
+
+
+class Permalink(Handler):
+        def get(self, blog_id):
+                               
+                if self.request.url.endswith('.json'):
+                        blog_id = blog_id.split(".")[0]                        
+                        self.format = 'json'
+                else:
+                        self.format = 'html'
+
+                blog = Blog.get_by_id(int(blog_id))
+
+                if self.format == 'html':
+                        self.render("list.html", blogs = [blog])
+                else:
+                        time_fmt = '%b %d, %Y'
+                        dObj = {'subject':blog.subject,'content':blog.content,'created':blog.created.strftime(time_fmt)}
+                        self.render_json(dObj)
+                        
+
+        
                     
 class Login(Handler):
 
@@ -211,10 +264,25 @@ class Logout(Handler):
         def get(self):
                 self.logout()
                 self.redirect('/signup')
-
-                               
+                              
+class ListHandler(Handler):
+    def get(self):
+        blogs = db.GqlQuery("SELECT * FROM Blog ORDER BY created DESC limit 10")
+        if self.request.url.endswith('.json'):
+                self.format = 'json'
+        else:
+                self.format = 'html'
                 
-        
+        if self.format == 'html':
+                self.render("list.html",blogs=blogs)
+        else:
+                time_fmt = '%b %d, %Y'
+                dObj = []
+                for blog in blogs:
+                       element = {'subject':blog.subject,'content':blog.content,'created':blog.created.strftime(time_fmt)}
+                       dObj.append(element)
+                       
+                self.render_json(dObj)
                 
 class WelcomeHandler(MainHandler):
     def get(self):
@@ -225,6 +293,9 @@ class WelcomeHandler(MainHandler):
 app = webapp2.WSGIApplication([
     ('/signup', MainHandler),
     ('/welcome',WelcomeHandler),
+    ('/newpost',NewPost),
+    ('/blog/?(?:.json)?',ListHandler),
+    ('/blog/([0-9]+)(?:.json)?',Permalink),
     ('/login',Login),
     ('/logout',Logout)
     ], debug=True)
