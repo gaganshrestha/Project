@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>/the Blog/</title>
+    </head>
+    
+    <style type="text/css">
+
+    body {
+        font-family: sans-serif;
+        width: 800px;
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+    .error {
+        color: red;
+    }
+
+    label{
+        display: block;
+        font-size: 20px;
+        color: green;
+    }
+
+    input[type=text] {
+        font-size: 24px; 
+    }
+
+    input[type=submit] {
+        width: 400px;
+        font-size: 20px;
+        padding: 2px;
+    }
+
+    textarea {
+        width: 400px;
+        height: 200px;
+        font-size: 17px;
+        font-family: monospace;
+    }
+
+    hr {
+        margin: 20px auto;
+    }
+
+    .art + .art {
+        margin-top: 20px;
+    }
+
+    .art-title {
+        font-weight: bold;
+        font-size: 20px;
+        color: green;
+    }
+
+    .art-body {
+        margin: 0; font-size: 17px;
+    }
+    </style>
+    
+    <body>
+        <h1>new post</h1>
+
+        <form method="post">
+            <label>
+                <div class="label">subject</div><input type="text" name="subject" value={{subject}}>
+            </label>
+            <label>
+                <div class="label">blog</div><textarea name="content" class="textarea">{{content}}</textarea>
+            </label>
+            <br>
+            <div class="error">{{error}}</div>
+            
+            <br>
+            <input type="submit">
+            <br>
+
+            <hr>
+                     
+            {% for art in arts %}
+
+            <div class="art">
+                <div class="art-title">{{art.title}}</div>
+                <pre class="art-body">{{art.art}}</pre>
+            </div>
+            
+            {%  endfor %}
+            
+        </form>
+    </body>
+</html>
